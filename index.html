@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<title>MS Word & Excel Quiz</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:1rem}
+h1{font-size:28px;font-weight:600;color:#fff;margin-bottom:6px}
+p{color:rgba(255,255,255,0.8)}
+.card{background:#fff;border-radius:12px;padding:24px;margin-bottom:16px;box-shadow:0 10px 40px rgba(0,0,0,0.1)}
+.form-group{margin-bottom:12px}
+label{display:block;font-size:13px;font-weight:600;color:#333;margin-bottom:6px}
+input{width:100%;padding:10px 12px;font-size:14px;border:1px solid #ddd;border-radius:8px}
+input:focus{outline:none;border-color:#667eea}
+.btn{padding:10px 24px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;margin-right:8px}
+.btn-primary{background:#667eea;color:#fff}
+.btn-primary:hover{background:#5568d3}
+.btn-success{background:#28a745;color:#fff}
+.btn-danger{background:#dc3545;color:#fff}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:12px}
+.badge-word{background:#E6F1FB;color:#0C447C}
+.badge-excel{background:#EAF3DE;color:#27500A}
+.badge-pass{background:#d4edda;color:#155724}
+.badge-fail{background:#f8d7da;color:#721c24}
+.progress{background:#e0e0e0;height:6px;border-radius:3px;margin-bottom:16px;overflow:hidden}
+.progress-bar{background:#667eea;height:100%;transition:width 0.3s}
+.option{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:8px;margin-bottom:8px;cursor:pointer}
+.option:hover{background:#f9f9f9}
+.option.selected{border-color:#667eea;background:#E6F1FB}
+.option-key{min-width:24px;font-weight:600;color:#667eea}
+.option-text{flex:1;color:#333;line-height:1.4}
+.error{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:16px}
+.success-msg{background:#d4edda;color:#155724;padding:12px;border-radius:8px;margin-bottom:16px}
+.error-msg{background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:16px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:20px}
+.metric{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:12px;padding:20px;text-align:center}
+.metric-val{font-size:32px;font-weight:600;margin-bottom:4px}
+.metric-lbl{font-size:12px}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th{background:#f8f9fa;padding:12px;text-align:left;font-weight:600;border-bottom:2px solid #ddd}
+td{padding:12px;border-bottom:1px solid #ddd}
+tr:hover{background:#f9f9f9}
+.code-box{background:#f0f4ff;border-left:4px solid #667eea;padding:16px;border-radius:8px;margin:10px 0;text-align:center}
+.code-val{font-size:32px;font-weight:600;color:#667eea;font-family:monospace;letter-spacing:2px}
+.live-dot{display:inline-block;width:8px;height:8px;background:#28a745;border-radius:50%;margin-right:6px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.screen{display:none}
+.active{display:block}
+.footer{text-align:center;font-size:12px;color:rgba(255,255,255,0.6);margin-top:20px}
+
+/* ── Mode Switcher ── */
+.header{text-align:center;padding:20px 0 10px;color:#fff}
+.mode-tabs{display:flex;justify-content:center;gap:0;margin-bottom:20px}
+.mode-tab{padding:10px 32px;font-size:15px;font-weight:600;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;transition:.2s}
+.mode-tab:first-child{border-radius:10px 0 0 10px}
+.mode-tab:last-child{border-radius:0 10px 10px 0}
+.mode-tab.active-tab{background:#fff;color:#667eea}
+
+/* ── Containers ── */
+#studentApp{display:none}
+#lecturerApp{display:none}
+#studentApp.show, #lecturerApp.show{display:block}
+.student-wrap{max-width:600px;margin:0 auto}
+.lecturer-wrap{max-width:1000px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MS Word & Excel Quiz</h1>
+  <p>Powered by JSONBin</p>
+</div>
+
+<!-- Mode switcher -->
+<div class="mode-tabs">
+  <button class="mode-tab active-tab" onclick="setMode('student')">🎓 Student</button>
+  <button class="mode-tab" onclick="setMode('lecturer')">👨‍🏫 Lecturer</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     STUDENT APP
+══════════════════════════════════════ -->
+<div id="studentApp" class="show">
+  <div class="student-wrap">
+
+    <!-- Join Screen -->
+    <div class="screen active" id="s-join">
+      <div class="card">
+        <h2 style="color:#333;font-size:18px;margin-bottom:16px">Start Exam</h2>
+        <div id="errorMsg"></div>
+        <div class="form-group"><label>Full Name</label><input type="text" id="sName" placeholder="Enter your name"></div>
+        <div class="form-group"><label>Student ID</label><input type="text" id="sId" placeholder="Enter your ID"></div>
+        <div class="form-group"><label>Quiz Code</label><input type="text" id="qCode" placeholder="From lecturer" style="text-transform:uppercase"></div>
+        <button class="btn btn-primary" style="width:100%;padding:12px" onclick="startQuiz()">Start Exam →</button>
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div class="screen" id="s-quiz">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <span id="section" class="badge badge-word">Word</span>
+          <span style="color:#666">Q <span id="qNum">1</span>/40</span>
+        </div>
+        <div class="progress"><div class="progress-bar" id="progBar" style="width:2.5%"></div></div>
+        <div style="font-size:12px;color:#666;margin-bottom:4px" id="qId"></div>
+        <div style="font-size:16px;font-weight:500;color:#333;margin-bottom:16px" id="qText"></div>
+        <div id="opts"></div>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitAnswer()" disabled style="margin-top:16px;width:100%;padding:12px">Submit Answer →</button>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div class="screen" id="s-result">
+      <div class="card" style="text-align:center">
+        <h2 style="color:#333;font-size:24px;margin-bottom:8px">✓ Completed!</h2>
+        <p style="color:#666;margin-bottom:20px">Your answers have been submitted. Switch to Lecturer view to see results.</p>
+        <button class="btn btn-primary" style="width:100%" onclick="setMode('lecturer')">View Leaderboard →</button>
+      </div>
+    </div>
+
+  </div><!-- /student-wrap -->
+</div><!-- /studentApp -->
+
+
+<!-- ══════════════════════════════════════
+     LECTURER APP
+══════════════════════════════════════ -->
+<div id="lecturerApp">
+  <div class="lecturer-wrap">
+
+    <!-- Setup Screen -->
+    <div class="screen active" id="l-setup">
+      <div class="card">
+        <h2 style="color:#333;font-size:20px;margin-bottom:16px">Setup Instructions</h2>
+        <div style="color:#666;line-height:1.8;font-size:13px">
+          <p style="margin-bottom:10px"><strong>Step 1:</strong> Go to <strong>jsonbin.io</strong> → Sign up → Click <strong>Account → API Keys</strong> → Copy your <strong>Master Key</strong></p>
+          <p style="margin-bottom:10px"><strong>Step 2:</strong> Click <strong>Bins → Create Bin</strong> → Paste: <code style="background:#f0f0f0;padding:2px 6px">{"students":[]}</code> → Save → Copy the <strong>Bin ID</strong></p>
+          <p><strong>Step 3:</strong> Paste both below and create your permanent quiz code</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="form-group"><label>Quiz Name (e.g., Class 10A)</label><input type="text" id="quizName" placeholder="Enter quiz name"></div>
+        <div class="form-group"><label>Bin ID</label><input type="text" id="binId" placeholder="Your bin ID"></div>
+        <div class="form-group"><label>Master API Key</label><input type="password" id="apiKey" placeholder="Your master key"><small style="color:#666;margin-top:4px;display:block">Will not be displayed again</small></div>
+        <button class="btn btn-primary" onclick="setupQuiz()">Create Quiz Code →</button>
+        <button class="btn" onclick="toggleKey()" style="background:#f0f0f0;color:#333">Show/Hide Key</button>
+      </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div class="screen" id="l-dash">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div><h2 style="color:#fff;margin:0">Dashboard</h2><p><span class="live-dot"></span>Live updates every 2 seconds</p></div>
+        <div>
+          <button class="btn btn-success" onclick="exportExcel()">📊 Export to Excel</button>
+          <button class="btn btn-danger" onclick="logout()">Logout</button>
+        </div>
+      </div>
+      <div id="codeDisplay" class="card" style="display:none">
+        <h3 style="color:#333;margin-bottom:12px">✓ Permanent Quiz Code Created</h3>
+        <div class="code-box">
+          <div style="font-size:12px;color:#666;margin-bottom:8px">Share this code with students (it never expires):</div>
+          <div class="code-val" id="codeVal"></div>
+          <button class="btn btn-primary" style="margin-top:12px;width:100%;padding:8px" onclick="copyCode()">Copy Code</button>
+        </div>
+      </div>
+      <div id="lSuccessMsg" style="display:none" class="success-msg"></div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="totalStudents">0</div><div class="metric-lbl">Total Students</div></div>
+        <div class="metric"><div class="metric-val" id="completed">0</div><div class="metric-lbl">Completed</div></div>
+        <div class="metric"><div class="metric-val" id="avgScore">—</div><div class="metric-lbl">Class Average</div></div>
+        <div class="metric"><div class="metric-val" id="topScore">—</div><div class="metric-lbl">Top Score</div></div>
+      </div>
+      <div class="card">
+        <h3 style="color:#333;margin-bottom:16px">📈 Student Results</h3>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Student ID</th><th>Word</th><th>Excel</th><th>Total</th><th>%</th><th>Grade</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody id="resultsTable"><tr><td colspan="10" style="text-align:center;color:#999">No data yet...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /lecturer-wrap -->
+</div><!-- /lecturerApp -->
+
+<div class="footer"><p>MS Word & Excel Quiz • Permanent Code Storage in JSONBin</p></div>
+
+<script>
+/* ═══════════════════════════════════════
+   MODE SWITCHER
+═══════════════════════════════════════ */
+function setMode(mode){
+  document.querySelectorAll('.mode-tab').forEach((t,i)=>t.classList.toggle('active-tab',(mode==='student'&&i===0)||(mode==='lecturer'&&i===1)));
+  document.getElementById('studentApp').classList.toggle('show',mode==='student');
+  document.getElementById('lecturerApp').classList.toggle('show',mode==='lecturer');
+}
+
+/* ═══════════════════════════════════════
+   QUESTIONS
+═══════════════════════════════════════ */
+const Q=[
+  {s:"word",q:"வேர்ட் பிராசஸிங் (Word processing) என்பதன் முதன்மை வரையறை என்ன?",o:["விரிதாள்கள் மற்றும் வரைபடங்களை உருவாக்குதல்","உரை ஆவணங்களை உருவாக்குதல், திருத்துதல், வடிவமைத்தல், சேமித்தல் மற்றும் அச்சிடுதல்","மின்னஞ்சல் மற்றும் தொடர்புகளை நிர்வகித்தல்","வலைத்தளங்களை வடிவமைத்தல்"],a:1},
+  {s:"word",q:"கடைசியாகச் செய்த செயலை ரத்து செய்ய (Undo) எந்த விசைப்பலகை குறுக்குவழி பயன்படுத்தப்படுகிறது?",o:["Ctrl + Y","Ctrl + X","Ctrl + Z","Ctrl + S"],a:2},
+  {s:"word",q:"சுட்டியைப் (Mouse) பயன்படுத்தி ஒரு முழுப் பத்தியையும் விரைவாகத் தேர்ந்தெடுக்க என்ன செய்ய வேண்டும்?",o:["ஒரு முறை கிளிக் செய்ய வேண்டும்","முதல் வார்த்தையை இருமுறை கிளிக் செய்ய வேண்டும்","பத்தியில் எங்கேனும் மூன்று முறை கிளிக் (Triple-click) செய்ய வேண்டும்","வலது கிளிக் செய்து 'All' என்பதைத் தேர்ந்தெடுக்க வேண்டும்"],a:2},
+  {s:"word",q:"விசைப்பலகையில் உள்ள 'Delete' விசையின் சரியான செயல் என்ன?",o:["கர்சருக்கு இடதுபுறம் உள்ள எழுத்தை நீக்கும்","கர்சருக்கு வலதுபுறம் உள்ள எழுத்தை நீக்கும்","முழு வரியையும் நீக்கும்","முழு ஆவணத்தையும் நீக்கும்"],a:1},
+  {s:"word",q:"ஓரங்கள் (Margins), பக்கத் திசை (Orientation) மற்றும் நெடுவரிசைகள் (Columns) எந்த ரிப்பன் டேப்பில் உள்ளன?",o:["Home","Insert","Layout","Review"],a:2},
+  {s:"word",q:"தானியங்கி பொருளடக்கத்தை (Table of Contents) உருவாக்க மிக முக்கியமான தேவை என்ன?",o:["அனைத்து தலைப்புகளையும் அடிக்கோடிட வேண்டும்","உள்ளமைக்கப்பட்ட தலைப்பு ஸ்டைல்களை (Heading 1, 2, or 3) பயன்படுத்த வேண்டும்","பக்க எண்களை கைமுறையாக தட்டச்சு செய்ய வேண்டும்","முழு ஆவணத்திற்கும் ஒரு குறிப்பிட்ட எழுத்துருவைப் பயன்படுத்த வேண்டும்"],a:1},
+  {s:"word",q:"மெயில் மெர்ஜ் (Mail Merge) முறையில், பெறுநர்களின் பட்டியலைக் கொண்ட கோப்பு எவ்வாறு அழைக்கப்படுகிறது?",o:["Main Document","Placeholder","Data Source","Merge Field"],a:2},
+  {s:"word",q:"ஒரு மதிப்பாய்வாளர் செய்யும் ஒவ்வொரு மாற்றத்தையும் பதிவு செய்ய எந்தக் கருவியைப் பயன்படுத்த வேண்டும்?",o:["Comments","Track Changes","Spell Check","Find and Replace"],a:1},
+  {s:"word",q:"வெவ்வேறு ஓரங்கள் அல்லது பக்கத் திசைகளை அனுமதிக்க, புதிய பகுதியைத் தொடங்க எதனைப் பயன்படுத்த வேண்டும்?",o:["Column Break","Section Break (Next Page)","Simple Page Break","Continuous Break"],a:1},
+  {s:"word",q:"நவீன மைக்ரோசாப்ட் வேர்ட் ஆவணங்களின் இயல்புநிலை (Default) கோப்பு வடிவம் என்ன?",o:[".txt",".pdf",".docx",".rtf"],a:2},
+  {s:"word",q:"பிரிவு முறிவுகள் (Section Breaks) போன்ற மறைக்கப்பட்ட குறியீடுகளைப் பார்க்க எந்த பொத்தானைப் பயன்படுத்த வேண்டும்?",o:["Bold (B)","Show/Hide ¶ (Ctrl+*)","இதழ் (Italic)","எழுத்துரு அளவு (Font Size)"],a:1},
+  {s:"word",q:"வெவ்வேறு வேர்ட் பிராசஸிங் மென்பொருள்களுக்கு இடையே கோப்புகளைப் பகிர எந்த வடிவம் சிறந்தது?",o:[".docx",".pdf",".txt",".rtf (Rich Text Format)"],a:3},
+  {s:"word",q:"முதல் பக்கத்தில் மட்டும் வேறு தலைப்பை (Header) வைக்க எந்த விருப்பத்தைத் தேர்ந்தெடுக்க வேண்டும்?",o:["Same as Previous","Different First Page","First Page Only","Odd & Even Pages"],a:1},
+  {s:"word",q:"ஆவணத்தில் ஒரு வார்த்தை இருக்கும் இடங்களிலெல்லாம் அதை உடனடியாக மாற்ற எந்தக் கருவி உதவுகிறது?",o:["Find (Ctrl+F)","Find & Replace (Ctrl+H)","Spell Check (F7)","Thesaurus"],a:1},
+  {s:"word",q:"ஒரு வேர்ட் அட்டவணையில் அடுத்த செல்லிற்கு (Cell) நகர எதனைப் பயன்படுத்த வேண்டும்?",o:["Enter","Tab","Shift","Spacebar"],a:1},
+  {s:"word",q:"உரையை அடுத்த நெடுவரிசையின் (Column) உச்சிக்கு கொண்டு செல்ல எதனைப் பயன்படுத்த வேண்டும்?",o:["Page Break","Column Break","Section Break","Line Break"],a:1},
+  {s:"word",q:"ஆவணத்தின் பின்புலத்தில் மங்கலாகத் தெரியும் 'CONFIDENTIAL' போன்ற உரை எவ்வாறு அழைக்கப்படுகிறது?",o:["Header","Border","Watermark","Footer"],a:2},
+  {s:"word",q:"கர்சரை ஒரு நேரத்தில் ஒரு முழு வார்த்தையாக நகர்த்த எந்த குறுக்குவழியைப் பயன்படுத்தலாம்?",o:["Ctrl + S","Ctrl + ← / →","Ctrl + Home","Shift + Tab"],a:1},
+  {s:"word",q:"எழுத்துரு அளவை (Font Size) அதிகரிக்கப் பயன்படும் குறுக்குவழி எது?",o:["Ctrl + [","Ctrl + ]","Ctrl + A","Ctrl + N"],a:1},
+  {s:"word",q:"இங்கிலாந்து, ஆசியா மற்றும் ஆப்பிரிக்காவில் தரநிலையாகப் பயன்படுத்தப்படும் காகித அளவு எது?",o:["Letter","Legal","A4","A3"],a:2},
+  {s:"excel",q:"எக்செல்-இல் ஒவ்வொரு சூத்திரமும் (Formula) எந்தக் குறியீட்டுடன் தொடங்க வேண்டும்?",o:["#","+","= (Equals sign)","@"],a:2},
+  {s:"excel",q:"மேல் இடது மூலையில் உள்ள 'Name Box'-ன் நோக்கம் என்ன?",o:["இது முழு கோப்பிற்கும் பெயரிடுகிறது","தற்போது தேர்ந்தெடுக்கப்பட்ட செல்லின் முகவரியைக் காட்டுகிறது","விரிதாளில் உள்ள வார்த்தைகளை எண்ணுகிறது","உரையை தடிமனாக மாற்றுகிறது"],a:1},
+  {s:"excel",q:"ஒரு வடிவத்தை (எ.கா. 1, 2, 3...) மூலையை இழுப்பதன் மூலம் விரைவாக நிரப்ப அனுமதிக்கும் எக்செல் அம்சம் எது?",o:["Pattern Maker","Fill Handle","AutoSum","VLOOKUP"],a:1},
+  {s:"excel",q:"=SUM(B2:B5) என்ற சூத்திரத்தில், கோலன் (:) குறியீடு எதைக் குறிக்கிறது?",o:["வகுத்தல்","கழித்தல்","'இது முதல் இது வரை' (Range)","செல் B2 மற்றும் செல் B5 மட்டும்"],a:2},
+  {s:"excel",q:"செல் வரம்பில் உள்ள மிக உயர்ந்த எண்ணைக் கண்டறிய எந்தச் செயல்பாட்டைப் பயன்படுத்த வேண்டும்?",o:["SUM","AVERAGE","MAX","MIN"],a:2},
+  {s:"excel",q:"ஒரு IF கூற்று (IF statement) என்ன செய்கிறது?",o:["எண்களின் வரிசையைக் கூட்டுகிறது","ஒரு கேள்வியைக் கேட்டு, ஆம்/இல்லை என்ற முடிவின் அடிப்படையில் வெவ்வேறு பதில்களை அளிக்கிறது","அட்டவணையில் ஒரு மதிப்பைக் தேடுகிறது","ஒரு வரைபடத்தை உருவாக்குகிறது"],a:1},
+  {s:"excel",q:"VLOOKUP-இல் உள்ள 'V' என்பது எதைக் குறிக்கிறது?",o:["Virtual","Value","Vertical","Verified"],a:2},
+  {s:"excel",q:"குறிப்பிட்ட நிபந்தனைகளுடன் பொருந்தாத வரிசைகளை தற்காலிகமாக மறைக்க எதனைப் பயன்படுத்த வேண்டும்?",o:["Sorting","Filtering","Merging","Formulas"],a:1},
+  {s:"excel",q:"எண்களுக்குப் பதிலாக உரையுடன் கணக்கீடு செய்ய முயற்சிக்கும்போது எக்செல்-இல் தோன்றும் பிழைச் செய்தி எது?",o:["#DIV/0!","#VALUE!","#REF!","#N/A"],a:1},
+  {s:"excel",q:"செல் A1-க்கு உடனடியாகச் செல்ல எந்த குறுக்குவழியைப் பயன்படுத்தலாம்?",o:["Ctrl + S","Ctrl + Home","Ctrl + End","Ctrl + A"],a:1},
+  {s:"excel",q:"எக்செல்-இல் நெடுவரிசைகள் (Columns) எவ்வாறு பெயரிடப்படுகின்றன?",o:["1, 2, 3...","A, B, C...","Row 1, Row 2...","Col 1, Col 2..."],a:1},
+  {s:"excel",q:"தானியங்கி கூட்டல் (AutoSum) செய்ய உதவும் விசைப்பலகை குறுக்குவழி எது?",o:["Ctrl + =","Alt + =","Shift + =","Ctrl + S"],a:1},
+  {s:"excel",q:"எண்களைக் கொண்ட செல்களின் (Cells) எண்ணிக்கையை மட்டும் கணக்கிட எந்தச் சார்பு (Function) உதவுகிறது?",o:["SUM","COUNT","MAX","AVERAGE"],a:1},
+  {s:"excel",q:"ஒரு சூத்திரத்தில் குறிப்பிடப்பட்டுள்ள செல் நீக்கப்படும்போது எந்தப் பிழைச் செய்தி தோன்றும்?",o:["#DIV/0!","#VALUE!","#REF!","#NAME?"],a:2},
+  {s:"excel",q:"காலியான செல்லால் வகுக்க முயற்சிக்கும்போது எக்செல் காட்டும் பிழை எது?",o:["#DIV/0!","#REF!","#VALUE!","#N/A"],a:0},
+  {s:"excel",q:"அருகருகே இல்லாத நெடுவரிசைகளை வரைபடத்திற்காகத் தேர்ந்தெடுக்க எந்த விசையை அழுத்த வேண்டும்?",o:["Shift","Alt","Ctrl","Tab"],a:2},
+  {s:"excel",q:"தரவுகளை ஏறுவரிசையிலோ அல்லது இறங்குவரிசையிலோ மாற்றி அமைக்க எதனைப் பயன்படுத்த வேண்டும்?",o:["Filtering","Sorting","Conditional Formatting","VLOOKUP"],a:1},
+  {s:"excel",q:"VLOOKUP-இல் துல்லியமான பொருத்தத்தைத் (Exact match) தேட எதனைப் பயன்படுத்த வேண்டும்?",o:["TRUE","FALSE","YES","NO"],a:1},
+  {s:"excel",q:"எக்செல் ஜன்னலில் நாம் எந்த செல்லில் இருக்கிறோம் என்பதைக் காட்டும் பகுதி எது?",o:["Formula Bar","Name Box","Status Bar","Ribbon"],a:1},
+  {s:"excel",q:"ஒரு வரைபடத்தில் (Chart) ஒவ்வொரு நிறமும் எதனைக் குறிக்கிறது என்பதைத் தெரிவிப்பது எது?",o:["Title","Legend","Data Labels","Gridlines"],a:1}
+];
+
+/* ═══════════════════════════════════════
+   STUDENT LOGIC
+   Quiz code = btoa(binId + "|" + apiKey)
+   No shared config bin needed — zero dependencies.
+═══════════════════════════════════════ */
+let cQ=0, ans=[], sName='', sId='', sBinId='', sApiKey='', sel=-1;
+
+function startQuiz(){
+  sName=document.getElementById('sName').value.trim();
+  sId=document.getElementById('sId').value.trim();
+  const raw=document.getElementById('qCode').value.trim();
+  if(!sName||!sId||!raw){
+    document.getElementById('errorMsg').innerHTML='<div class="error">⚠ Fill all fields</div>';
+    return;
+  }
+  // Decode quiz code → binId + apiKey
+  try{
+    const decoded=atob(raw);
+    const sep=decoded.indexOf('|');
+    if(sep<0) throw new Error('bad format');
+    sBinId=decoded.slice(0,sep);
+    sApiKey=decoded.slice(sep+1);
+    if(!sBinId||!sApiKey) throw new Error('empty parts');
+  }catch(e){
+    document.getElementById('errorMsg').innerHTML='<div class="error">⚠ Invalid Quiz Code — copy it exactly from the lecturer</div>';
+    return;
+  }
+  // Verify connectivity before starting
+  fetch('https://api.jsonbin.io/v3/b/'+sBinId+'/latest',{headers:{'X-Master-Key':sApiKey}})
+    .then(r=>{if(!r.ok)throw new Error('bad response');return r.json();})
+    .then(()=>{cQ=0;ans=[];sel=-1;show('s-join','s-quiz');renderQ();})
+    .catch(()=>{document.getElementById('errorMsg').innerHTML='<div class="error">⚠ Could not connect. Check your quiz code or internet.</div>';});
+}
+
+function show(hideId,showId){
+  document.getElementById(hideId).classList.remove('active');
+  document.getElementById(showId).classList.add('active');
+}
+
+function renderQ(){
+  sel=-1;
+  const q=Q[cQ];
+  document.getElementById('qId').textContent='Question '+(cQ+1)+' of 40';
+  document.getElementById('qNum').textContent=cQ+1;
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('progBar').style.width=((cQ+1)/40*100)+'%';
+  const b=document.getElementById('section');
+  b.textContent=q.s==='word'?'Word':'Excel';
+  b.className='badge '+(q.s==='word'?'badge-word':'badge-excel');
+  const o=document.getElementById('opts');
+  o.innerHTML='';
+  q.o.forEach(function(opt,i){
+    const div=document.createElement('div');
+    div.className='option';
+    div.innerHTML='<span class="option-key">'+['A','B','C','D'][i]+'</span><span class="option-text">'+opt+'</span>';
+    div.onclick=function(){sel=i;for(let j=0;j<o.children.length;j++)o.children[j].classList.remove('selected');o.children[i].classList.add('selected');document.getElementById('submitBtn').disabled=false;};
+    o.appendChild(div);
+  });
+  document.getElementById('submitBtn').disabled=true;
+}
+
+async function submitAnswer(){
+  if(sel<0)return;
+  ans[cQ]=sel;
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+sBinId+'/latest',{headers:{'X-Master-Key':sApiKey}});
+    const d=await r.json();
+    const arr=d.record.students||[];
+    let idx=arr.findIndex(function(s){return s.id===sId;});
+    if(idx<0){arr.push({name:sName,id:sId,word:0,excel:0,total:0,pct:0,grade:'-',progress:0,answers:[],time:new Date().toLocaleString()});idx=arr.length-1;}
+    arr[idx].answers=ans;arr[idx].progress=cQ+1;
+    await fetch('https://api.jsonbin.io/v3/b/'+sBinId,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':sApiKey},body:JSON.stringify({students:arr})});
+  }catch(e){}
+  cQ++;
+  if(cQ>=40){
+    let w=0,ex=0;
+    Q.forEach(function(q,i){if(ans[i]===q.a){if(q.s==='word')w++;else ex++;}});
+    const tot=w+ex,pct=Math.round(tot/40*100),gr=pct>=80?'A':pct>=65?'B':pct>=50?'C':pct>=40?'D':'F';
+    try{
+      const r=await fetch('https://api.jsonbin.io/v3/b/'+sBinId+'/latest',{headers:{'X-Master-Key':sApiKey}});
+      const d=await r.json();
+      const arr=d.record.students||[];
+      const idx=arr.findIndex(function(s){return s.id===sId;});
+      if(idx>=0){
+        arr[idx].word=w;arr[idx].excel=ex;arr[idx].total=tot;arr[idx].pct=pct;arr[idx].grade=gr;arr[idx].progress=40;
+        await fetch('https://api.jsonbin.io/v3/b/'+sBinId,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':sApiKey},body:JSON.stringify({students:arr})});
+      }
+    }catch(e){}
+    show('s-quiz','s-result');
+  }else{
+    renderQ();
+  }
+}
+
+/* ═══════════════════════════════════════
+   LECTURER LOGIC
+   Quiz code = btoa(binId + "|" + apiKey)
+   Saved in localStorage — survives page refresh forever.
+═══════════════════════════════════════ */
+let lBinId='', lApiKey='', quizCode='', refreshInterval=null;
+
+/* Restore session on page load */
+(function restoreSession(){
+  const saved=JSON.parse(localStorage.getItem('quizSession')||'null');
+  if(saved&&saved.quizCode&&saved.lBinId&&saved.lApiKey){
+    lBinId=saved.lBinId; lApiKey=saved.lApiKey; quizCode=saved.quizCode;
+    document.getElementById('codeVal').textContent=quizCode;
+    document.getElementById('codeDisplay').style.display='block';
+    document.getElementById('lSuccessMsg').style.display='block';
+    document.getElementById('lSuccessMsg').innerHTML='<strong>✓ Session restored.</strong> Quiz code active — share it with students.';
+    document.getElementById('l-setup').classList.remove('active');
+    document.getElementById('l-dash').classList.add('active');
+    fetchData();
+    refreshInterval=setInterval(fetchData,2000);
+  }
+})();
+
+function toggleKey(){
+  const k=document.getElementById('apiKey');
+  k.type=k.type==='password'?'text':'password';
+}
+
+async function setupQuiz(){
+  const qn=document.getElementById('quizName').value.trim();
+  lBinId=document.getElementById('binId').value.trim();
+  lApiKey=document.getElementById('apiKey').value.trim();
+  if(!qn||!lBinId||!lApiKey){alert('Please fill all fields.');return;}
+
+  // Verify credentials first
+  let verifyOk=false;
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+lBinId+'/latest',{headers:{'X-Master-Key':lApiKey}});
+    verifyOk=r.ok;
+  }catch(e){}
+  if(!verifyOk){alert('Could not connect to JSONBin. Check your Bin ID and API Key.');return;}
+
+  // Generate quiz code by encoding binId + apiKey in base64
+  quizCode=btoa(lBinId+'|'+lApiKey);
+
+  // Save to localStorage — code will persist forever across refreshes
+  localStorage.setItem('quizSession',JSON.stringify({quizCode:quizCode,lBinId:lBinId,lApiKey:lApiKey,quizName:qn}));
+
+  document.getElementById('codeVal').textContent=quizCode;
+  document.getElementById('codeDisplay').style.display='block';
+  document.getElementById('lSuccessMsg').style.display='block';
+  document.getElementById('lSuccessMsg').innerHTML='<strong>✓ Ready!</strong> Share the quiz code below with students. It never expires.';
+  document.getElementById('l-setup').classList.remove('active');
+  document.getElementById('l-dash').classList.add('active');
+  fetchData();
+  refreshInterval=setInterval(fetchData,2000);
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(quizCode).then(function(){alert('Quiz code copied!');});
+}
+
+async function fetchData(){
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+lBinId+'/latest',{headers:{'X-Master-Key':lApiKey}});
+    const d=await r.json();
+    const students=d.record.students||[];
+    document.getElementById('totalStudents').textContent=students.length;
+    const comp=students.filter(function(s){return s.progress===40;});
+    document.getElementById('completed').textContent=comp.length;
+    if(comp.length>0){
+      const avg=Math.round(comp.reduce(function(a,s){return a+s.total;},0)/comp.length);
+      const top=Math.max.apply(null,comp.map(function(s){return s.total;}));
+      document.getElementById('avgScore').textContent=avg+'/40';
+      document.getElementById('topScore').textContent=top+'/40';
+    }
+    const tbody=document.getElementById('resultsTable');
+    tbody.innerHTML='';
+    if(!students.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#999">No data yet...</td></tr>';return;}
+    students.slice().sort(function(a,b){return b.total-a.total;}).forEach(function(s,idx){
+      const status=s.progress===40?(s.pct>=50?'<span class="badge badge-pass">PASS</span>':'<span class="badge badge-fail">FAIL</span>'):'<span class="badge" style="background:#cfe2ff;color:#084298">IN PROGRESS</span>';
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+(idx+1)+'</td><td><strong>'+s.name+'</strong></td><td>'+s.id+'</td><td>'+s.word+'</td><td>'+s.excel+'</td><td><strong>'+s.total+'</strong></td><td>'+s.pct+'%</td><td>'+s.grade+'</td><td>'+status+'</td><td style="font-size:12px;color:#666">'+s.time+'</td>';
+      tbody.appendChild(tr);
+    });
+  }catch(e){console.error(e);}
+}
+
+function exportExcel(){
+  fetch('https://api.jsonbin.io/v3/b/'+lBinId+'/latest',{headers:{'X-Master-Key':lApiKey}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      const students=d.record.students||[];
+      if(!students.length){alert('No data to export.');return;}
+      const h=['No','Name','Student ID','Word','Excel','Total','%','Grade','Status','Time'];
+      const rows=students.map(function(s,i){return [i+1,s.name,s.id,s.word,s.excel,s.total,s.pct+'%',s.grade,s.progress===40?(s.pct>=50?'PASS':'FAIL'):'IN PROGRESS',s.time];});
+      let csv=h.map(function(x){return '"'+x+'"';}).join(',')+'\n'+rows.map(function(r){return r.map(function(v){return '"'+v+'"';}).join(',');}).join('\n');
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      a.download='Quiz_Results_'+new Date().toISOString().slice(0,10)+'.csv';
+      a.click();
+    })
+    .catch(function(e){alert('Export failed: '+e.message);});
+}
+
+function logout(){
+  if(refreshInterval)clearInterval(refreshInterval);
+  localStorage.removeItem('quizSession');
+  lBinId='';lApiKey='';quizCode='';
+  document.getElementById('l-dash').classList.remove('active');
+  document.getElementById('l-setup').classList.add('active');
+  ['quizName','binId','apiKey'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('codeDisplay').style.display='none';
+  document.getElementById('lSuccessMsg').style.display='none';
+  document.getElementById('avgScore').textContent='--';
+  document.getElementById('topScore').textContent='--';
+  document.getElementById('totalStudents').textContent='0';
+  document.getElementById('completed').textContent='0';
+  document.getElementById('resultsTable').innerHTML='<tr><td colspan="10" style="text-align:center;color:#999">No data yet...</td></tr>';
+}
+</script>
+</body>
+</html>
